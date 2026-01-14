@@ -1,11 +1,11 @@
 /* ==============================
-   Ashyq Qala — Demo Map (NO API)
+   Ashyq Qala — Leaflet + OpenStreetMap (NO API KEY)
    Markers + Issues stored in localStorage
 ================================= */
 
-const LS_KEY = "ashyq_qala_issues_v1";
+const LS_KEY = "ashyq_qala_issues_leaflet_v1";
 
-const mapCanvas = document.getElementById("mapCanvas");
+/* DOM */
 const issueList = document.getElementById("issueList");
 const statsLine = document.getElementById("statsLine");
 
@@ -24,11 +24,24 @@ const issueCategory = document.getElementById("issueCategory");
 const issueStatus = document.getElementById("issueStatus");
 const issueDesc = document.getElementById("issueDesc");
 
+/* state */
 let issues = loadIssues();
 let addMode = false;
-let pickedPoint = null; // {xPct, yPct}
+let pickedLatLng = null; // Leaflet LatLng
 let activeId = null;
 
+/* Leaflet */
+const astanaCenter = [51.1282, 71.4304];
+const map = L.map("map", { center: astanaCenter, zoom: 12, zoomControl: true });
+
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom: 19,
+  attribution: "&copy; OpenStreetMap contributors"
+}).addTo(map);
+
+const markersById = new Map();
+
+/* helpers */
 function uid() {
   return Math.random().toString(16).slice(2) + Date.now().toString(16);
 }
@@ -55,7 +68,7 @@ function closeModal() {
   modal.classList.remove("show");
   modal.setAttribute("aria-hidden", "true");
   addMode = false;
-  pickedPoint = null;
+  pickedLatLng = null;
   coordsView.textContent = "не выбрана";
   btnSave.disabled = true;
   issueDesc.value = "";
@@ -63,26 +76,8 @@ function closeModal() {
   issueStatus.value = "new";
 }
 
-function setAddMode(on) {
-  addMode = on;
-  if (addMode) {
-    openModal();
-  } else {
-    closeModal();
-  }
-}
-
-function setPickedPoint(xPct, yPct) {
-  pickedPoint = { xPct, yPct };
-  coordsView.textContent = `${(xPct * 100).toFixed(1)}% / ${(yPct * 100).toFixed(1)}%`;
-  btnSave.disabled = false;
-}
-
 function getFilters() {
-  return {
-    category: filterCategory.value,
-    status: filterStatus.value
-  };
+  return { category: filterCategory.value, status: filterStatus.value };
 }
 
 function passFilters(issue, filters) {
@@ -92,7 +87,7 @@ function passFilters(issue, filters) {
 }
 
 function categoryLabel(code) {
-  const map = {
+  const m = {
     roads: "Дороги",
     light: "Освещение",
     trash: "Мусор",
@@ -100,111 +95,81 @@ function categoryLabel(code) {
     safety: "Безопасность",
     other: "Другое"
   };
-  return map[code] || "Другое";
+  return m[code] || "Другое";
 }
 
 function statusLabel(code) {
-  const map = { new: "Новая", work: "В работе", done: "Решена" };
-  return map[code] || "Новая";
+  const m = { new: "Новая", work: "В работе", done: "Решена" };
+  return m[code] || "Новая";
 }
 
-function render() {
-  // clear markers
-  mapCanvas.querySelectorAll(".marker").forEach((m) => m.remove());
-  issueList.innerHTML = "";
-
-  const filters = getFilters();
-  const visible = issues.filter((it) => passFilters(it, filters));
-
-  // markers
-  for (const it of visible) {
-    const marker = document.createElement("button");
-    marker.className = "marker";
-    marker.type = "button";
-    marker.title = `${categoryLabel(it.category)} · ${statusLabel(it.status)}\n${it.desc}`;
-    marker.dataset.id = it.id;
-    marker.dataset.status = it.status;
-
-    marker.style.left = `${it.xPct * 100}%`;
-    marker.style.top = `${it.yPct * 100}%`;
-
-    if (activeId === it.id) marker.classList.add("active");
-
-    marker.addEventListener("click", (e) => {
-      e.stopPropagation();
-      setActive(it.id);
-    });
-
-    mapCanvas.appendChild(marker);
-  }
-
-  // list
-  for (const it of visible) {
-    const item = document.createElement("div");
-    item.className = "issue";
-    item.dataset.id = it.id;
-
-    const top = document.createElement("div");
-    top.className = "issue-top";
-
-    const title = document.createElement("div");
-    title.className = "issue-title";
-    title.textContent = categoryLabel(it.category);
-
-    const meta = document.createElement("div");
-    meta.className = "issue-meta";
-    meta.textContent = statusLabel(it.status);
-
-    top.appendChild(title);
-    top.appendChild(meta);
-
-    const desc = document.createElement("div");
-    desc.className = "issue-meta";
-    desc.textContent = it.desc;
-
-    const pills = document.createElement("div");
-    pills.className = `pill ${it.status}`;
-    pills.textContent = `#${it.id.slice(0, 6)} · ${statusLabel(it.status)}`;
-
-    const actions = document.createElement("div");
-    actions.className = "issue-actions";
-
-    const btnFocus = document.createElement("button");
-    btnFocus.className = "btn btn-ghost";
-    btnFocus.textContent = "Показать";
-    btnFocus.addEventListener("click", () => setActive(it.id));
-
-    const btnNext = document.createElement("button");
-    btnNext.className = "btn btn-ghost";
-    btnNext.textContent = "Сменить статус";
-    btnNext.addEventListener("click", () => {
-      cycleStatus(it.id);
-    });
-
-    const btnDel = document.createElement("button");
-    btnDel.className = "btn btn-ghost";
-    btnDel.textContent = "Удалить";
-    btnDel.addEventListener("click", () => removeIssue(it.id));
-
-    actions.append(btnFocus, btnNext, btnDel);
-
-    item.append(top, pills, desc, actions);
-
-    item.addEventListener("click", () => setActive(it.id));
-    issueList.appendChild(item);
-  }
-
-  // stats
-  statsLine.textContent = `Показано: ${visible.length} из ${issues.length}`;
+/* нейтральные маркеры (серебристые), статус влияет на оттенок */
+function statusShade(code) {
+  if (code === "new") return "#f7f8fc";
+  if (code === "work") return "#e7eaf2";
+  return "#d8dce8";
 }
 
-function setActive(id) {
+function escapeHtml(s) {
+  return String(s)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+/* Leaflet marker factory */
+function makeMarker(issue) {
+  const shade = statusShade(issue.status);
+
+  const html = `
+    <div style="
+      width:22px;height:22px;border-radius:10px;
+      background: linear-gradient(135deg,#ffffff,${shade});
+      border:1px solid rgba(15,17,21,0.25);
+      box-shadow: 0 10px 22px rgba(0,0,0,0.18);
+    "></div>
+  `;
+
+  const icon = L.divIcon({
+    html,
+    className: "",
+    iconSize: [22, 22],
+    iconAnchor: [11, 22]
+  });
+
+  const marker = L.marker([issue.lat, issue.lng], { icon });
+
+  marker.on("click", () => setActive(issue.id, true));
+
+  marker.bindPopup(`
+    <b>${categoryLabel(issue.category)}</b><br/>
+    <span>${statusLabel(issue.status)}</span><br/>
+    <div style="margin-top:6px">${escapeHtml(issue.desc)}</div>
+  `);
+
+  return marker;
+}
+
+function clearMarkers() {
+  for (const [, marker] of markersById.entries()) {
+    map.removeLayer(marker);
+  }
+  markersById.clear();
+}
+
+function setActive(id, panTo = false) {
   activeId = id;
-  render();
 
-  // "подсветка" списка: пролистнуть к элементу
-  const el = issueList.querySelector(`.issue[data-id="${id}"]`);
-  if (el) el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  const it = issues.find((x) => x.id === id);
+  if (it && panTo) {
+    map.setView([it.lat, it.lng], Math.max(map.getZoom(), 15), { animate: true });
+    const marker = markersById.get(id);
+    if (marker) marker.openPopup();
+  }
+
+  render();
 }
 
 function cycleStatus(id) {
@@ -226,42 +191,95 @@ function removeIssue(id) {
   render();
 }
 
+function render() {
+  issueList.innerHTML = "";
+  clearMarkers();
+
+  const filters = getFilters();
+  const visible = issues.filter((it) => passFilters(it, filters));
+
+  // markers
+  for (const it of visible) {
+    const marker = makeMarker(it).addTo(map);
+    markersById.set(it.id, marker);
+  }
+
+  // list
+  for (const it of visible) {
+    const item = document.createElement("div");
+    item.className = "issue";
+    item.dataset.id = it.id;
+
+    if (activeId === it.id) {
+      item.style.borderColor = "rgba(120,140,190,0.55)";
+      item.style.boxShadow = "0 0 0 6px rgba(120,140,190,0.12)";
+    }
+
+    const top = document.createElement("div");
+    top.className = "issue-top";
+
+    const title = document.createElement("div");
+    title.className = "issue-title";
+    title.textContent = categoryLabel(it.category);
+
+    const meta = document.createElement("div");
+    meta.className = "issue-meta";
+    meta.textContent = statusLabel(it.status);
+
+    top.append(title, meta);
+
+    const desc = document.createElement("div");
+    desc.className = "issue-meta";
+    desc.textContent = it.desc;
+
+    const pill = document.createElement("div");
+    pill.className = `pill ${it.status}`;
+    pill.textContent = `#${it.id.slice(0, 6)} · ${statusLabel(it.status)}`;
+
+    const actions = document.createElement("div");
+    actions.className = "issue-actions";
+
+    const btnFocus = document.createElement("button");
+    btnFocus.className = "btn btn-ghost";
+    btnFocus.textContent = "Показать";
+    btnFocus.addEventListener("click", () => setActive(it.id, true));
+
+    const btnNext = document.createElement("button");
+    btnNext.className = "btn btn-ghost";
+    btnNext.textContent = "Сменить статус";
+    btnNext.addEventListener("click", () => cycleStatus(it.id));
+
+    const btnDel = document.createElement("button");
+    btnDel.className = "btn btn-ghost";
+    btnDel.textContent = "Удалить";
+    btnDel.addEventListener("click", () => removeIssue(it.id));
+
+    actions.append(btnFocus, btnNext, btnDel);
+
+    item.append(top, pill, desc, actions);
+    item.addEventListener("click", () => setActive(it.id, true));
+
+    issueList.appendChild(item);
+  }
+
+  statsLine.textContent = `Показано: ${visible.length} из ${issues.length}`;
+}
+
 /* ================== Events ================== */
-btnAddIssue.addEventListener("click", () => setAddMode(true));
-
-btnClearAll.addEventListener("click", () => {
-  if (!confirm("Удалить все метки?")) return;
-  issues = [];
-  activeId = null;
-  saveIssues();
-  render();
+btnAddIssue.addEventListener("click", () => {
+  addMode = true;
+  openModal();
 });
 
-filterCategory.addEventListener("change", render);
-filterStatus.addEventListener("change", render);
-
-// click on map to pick point (only if add mode)
-mapCanvas.addEventListener("click", (e) => {
+map.on("click", (e) => {
   if (!addMode) return;
-
-  const rect = mapCanvas.getBoundingClientRect();
-  const x = (e.clientX - rect.left) / rect.width;
-  const y = (e.clientY - rect.top) / rect.height;
-
-  // clamp
-  const xPct = Math.min(0.99, Math.max(0.01, x));
-  const yPct = Math.min(0.99, Math.max(0.01, y));
-
-  setPickedPoint(xPct, yPct);
-});
-
-modal.addEventListener("click", (e) => {
-  const t = e.target;
-  if (t && t.dataset && t.dataset.close) closeModal();
+  pickedLatLng = e.latlng;
+  coordsView.textContent = `${pickedLatLng.lat.toFixed(6)}, ${pickedLatLng.lng.toFixed(6)}`;
+  btnSave.disabled = false;
 });
 
 btnSave.addEventListener("click", () => {
-  if (!pickedPoint) return;
+  if (!pickedLatLng) return;
 
   const desc = (issueDesc.value || "").trim();
   if (desc.length < 5) {
@@ -274,14 +292,31 @@ btnSave.addEventListener("click", () => {
     category: issueCategory.value,
     status: issueStatus.value,
     desc,
-    xPct: pickedPoint.xPct,
-    yPct: pickedPoint.yPct,
+    lat: pickedLatLng.lat,
+    lng: pickedLatLng.lng,
     createdAt: Date.now()
   });
 
   saveIssues();
   closeModal();
   render();
+});
+
+btnClearAll.addEventListener("click", () => {
+  if (!confirm("Удалить все метки?")) return;
+  issues = [];
+  activeId = null;
+  saveIssues();
+  render();
+});
+
+filterCategory.addEventListener("change", render);
+filterStatus.addEventListener("change", render);
+
+/* modal close */
+modal.addEventListener("click", (e) => {
+  const t = e.target;
+  if (t && t.dataset && t.dataset.close) closeModal();
 });
 
 // ESC close modal

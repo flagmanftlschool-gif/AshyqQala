@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ashyq Qala</title>
 
-  <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
 </head>
 
 <body>
@@ -47,18 +49,14 @@
     <div class="hero">
       <div class="hero-content">
         <strong class="name">Ashyq Qala</strong>
-        <p class="slogan">Платформа коллективного решения городских проблем на основе данных. Астана.</p>
+        <p class="slogan">Платформа коллективного решения городских проблем на основе данных</p>
 
         <div class="hero-actions">
           <a class="btn btn-primary" href="#mapBlock">Сообщить о проблеме</a>
           <a class="btn btn-ghost" href="#services">Подробнее</a>
         </div>
 
-        <div class="hero-badges">
-          <div class="badge">Без API</div>
-          <div class="badge">Метки проблем</div>
-          <div class="badge">Хранение в браузере</div>
-        </div>
+
       </div>
     </div>
   </header>
@@ -114,8 +112,9 @@
               </div>
             </div>
 
-            <!-- “Карта” без API: интерактивный канвас -->
-            <div id="mapCanvas" class="map-canvas" aria-label="Карта Астаны (условная)"></div>
+            <!-- Leaflet + OpenStreetMap -->
+            <div id="map" class="leaflet-map" aria-label="Карта проблем"></div>
+
 
             <div class="map-footer">
               <div class="small">
@@ -234,22 +233,29 @@
     </section>
   </main>
 
-  <footer class="footer">
-    <div class="container footer-inner">
-      <div class="footer-brand">
-        <div class="footer-logo">AQ</div>
-        <div>
-          <div class="footer-title">Ashyq Qala</div>
-          <div class="footer-sub">Платформа 2026 · Астана</div>
-        </div>
+<footer class="footer">
+  <div class="container footer-inner">
+
+    <div class="footer-brand">
+      <div class="footer-logo">
+        <img src="logo.png" alt="Ashyq Qala logo">
       </div>
 
-      <div class="footer-links">
-        <a href="#">Политика конфиденциальности</a>
-        <a href="#">Пользовательское соглашение</a>
+      <div class="footer-text">
+        <div class="footer-title">Ashyq Qala</div>
+        <div class="footer-sub">Платформа 2026 · Астана</div>
       </div>
     </div>
-  </footer>
+
+    <div class="footer-links">
+      <a href="#">О проекте</a>
+      <a href="#">Контакты</a>
+      <a href="#">Политика конфиденциальности</a>
+    </div>
+
+  </div>
+</footer>
+
 
   <!-- Модалка: добавление проблемы -->
   <div class="modal" id="issueModal" aria-hidden="true">
@@ -304,6 +310,8 @@
       </div>
     </div>
   </div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 
   <script src="map.js"></script>
 </body>

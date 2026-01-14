@@ -550,47 +550,80 @@ textarea{ resize: vertical; }
   flex-wrap: wrap;
 }
 
+/* ================== Footer ================== */
 .footer{
   background: #0b0f18;
   color: rgba(255,255,255,0.90);
-  padding: 24px 0;
+  padding: 28px 0;
 }
+
 .footer-inner{
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 20px;
   flex-wrap: wrap;
 }
+
 .footer-brand{
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
 }
+
 .footer-logo{
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 900;
+
   background: rgba(255,255,255,0.10);
   border: 1px solid rgba(255,255,255,0.16);
+  overflow: hidden;
 }
-.footer-title{ font-weight: 900; }
-.footer-sub{ font-size: 13px; color: rgba(255,255,255,0.70); }
+
+.footer-logo img{
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  display: block;
+}
+
+.footer-text{
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.footer-title{
+  font-weight: 900;
+  font-size: 16px;
+  letter-spacing: 0.4px;
+}
+
+.footer-sub{
+  font-size: 13px;
+  color: rgba(255,255,255,0.65);
+}
+
 .footer-links{
   display: flex;
   gap: 14px;
   flex-wrap: wrap;
 }
+
 .footer-links a{
-  padding: 8px 10px;
+  padding: 8px 12px;
   border-radius: 12px;
   color: rgba(255,255,255,0.85);
+  transition: background 0.2s ease;
 }
-.footer-links a:hover{ background: rgba(255,255,255,0.10); }
+
+.footer-links a:hover{
+  background: rgba(255,255,255,0.10);
+}
 
 /* ================== Auth (stub) ================== */
 .auth{
@@ -621,18 +654,28 @@ textarea{ resize: vertical; }
 .muted{ color: rgba(15,17,21,0.70); }
 
 /* ================== Modal ================== */
+/* ================== Modal ================== */
 .modal{
   position: fixed;
   inset: 0;
   display: none;
   z-index: 50;
+
+  /* ВАЖНО: модалка не блокирует клики по карте */
+  pointer-events: none;
 }
-.modal.show{ display: block; }
+
+.modal.show{
+  display: block;
+}
 
 .modal-backdrop{
   position: absolute;
   inset: 0;
   background: rgba(0,0,0,0.55);
+
+  /* ВАЖНО: фон тоже не ловит клики */
+  pointer-events: none;
 }
 
 .modal-card{
@@ -645,6 +688,9 @@ textarea{ resize: vertical; }
   backdrop-filter: blur(14px);
   overflow: hidden;
   box-shadow: 0 24px 70px rgba(0,0,0,0.35);
+
+  /* ВАЖНО: клики работают внутри карточки */
+  pointer-events: auto;
 }
 
 .modal-head{
@@ -655,8 +701,16 @@ textarea{ resize: vertical; }
   border-bottom: 1px solid rgba(15,17,21,0.10);
 }
 
-.modal-title{ font-weight: 900; font-size: 16px; }
-.modal-sub{ font-size: 12px; color: rgba(15,17,21,0.70); margin-top: 4px; }
+.modal-title{
+  font-weight: 900;
+  font-size: 16px;
+}
+
+.modal-sub{
+  font-size: 12px;
+  color: rgba(15,17,21,0.70);
+  margin-top: 4px;
+}
 
 .modal-body{
   padding: 14px;
@@ -680,6 +734,7 @@ textarea{ resize: vertical; }
   width: 40px;
   height: 40px;
 }
+
 
 .field{
   display: flex;
@@ -716,4 +771,24 @@ textarea{ resize: vertical; }
 @media (max-width: 540px){
   .section-title{ font-size: 28px; }
   .map-canvas{ height: 340px; }
+}
+/* ===== Leaflet container ===== */
+.leaflet-map{
+  width: 100%;
+  height: 460px;
+  border-radius: 16px;
+}
+
+/* чтобы карта не вылезала за скругления */
+.map-wrap{ overflow: hidden; }
+
+/* мелкие улучшения внешнего вида контролов */
+.leaflet-control-zoom a{
+  border-radius: 10px !important;
+}
+.leaflet-control-attribution{
+  background: rgba(255,255,255,0.65) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 10px;
+  margin: 8px !important;
 }
