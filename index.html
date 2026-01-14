@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ashyq Qala</title>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <header class="header" id="home">
+    <nav class="menu-box">
+      <a class="menu-name" href="#home" aria-label="Ashyq Qala">
+        <img src="logo.png" alt="Ashyq Qala" width="78" />
+      </a>
+
+      <ul class="menu">
+        <li class="menu-item"><a href="#home">Главная</a></li>
+
+        <li class="menu-item has-submenu">
+          <a href="#mapBlock">Разделы</a>
+          <div class="submenu">
+            <a href="#mapBlock">Карта проблем</a>
+            <a href="#services">Возможности</a>
+            <a href="#how">Как работает</a>
+          </div>
+        </li>
+
+        <li class="menu-item"><a href="#contacts">Контакты</a></li>
+      </ul>
+
+      <div class="menu-actions">
+        <a class="btn btn-ghost" href="#mapBlock">Открыть карту</a>
+        <a class="btn btn-primary" href="#auth">Войти</a>
+      </div>
+    </nav>
+
+    <!-- ВИДЕО-ЗАСТАВКА В HEADER (НЕ УДАЛЕНО) -->
+    <div class="video-bg" aria-hidden="true">
+      <video autoplay muted loop playsinline>
+        <source src="video.mp4" type="video/mp4" />
+        Ваш браузер не поддерживает видео.
+      </video>
+    </div>
+
+    <div class="hero">
+      <div class="hero-content">
+        <strong class="name">Ashyq Qala</strong>
+        <p class="slogan">Платформа коллективного решения городских проблем на основе данных. Астана.</p>
+
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#mapBlock">Сообщить о проблеме</a>
+          <a class="btn btn-ghost" href="#services">Подробнее</a>
+        </div>
+
+        <div class="hero-badges">
+          <div class="badge">Без API</div>
+          <div class="badge">Метки проблем</div>
+          <div class="badge">Хранение в браузере</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- КАРТА (БЕЗ API) -->
+    <section class="section" id="mapBlock">
+      <div class="container">
+        <div class="section-head row-between">
+          <div>
+            <h1 class="section-title">Карта проблем</h1>
+            <p class="section-subtitle">
+              Кликайте по карте, добавляйте метки, фильтруйте и отслеживайте статусы.
+            </p>
+          </div>
+
+          <div class="map-actions">
+            <button class="btn btn-primary" id="btnAddIssue">+ Добавить проблему</button>
+            <button class="btn btn-ghost" id="btnClearAll" title="Очистить все метки">Очистить</button>
+          </div>
+        </div>
+
+        <div class="map-layout">
+          <div class="map-wrap">
+            <div class="map-toolbar">
+              <div class="filters">
+                <label class="select">
+                  <span>Категория</span>
+                  <select id="filterCategory">
+                    <option value="all">Все</option>
+                    <option value="roads">Дороги</option>
+                    <option value="light">Освещение</option>
+                    <option value="trash">Мусор</option>
+                    <option value="eco">Экология</option>
+                    <option value="safety">Безопасность</option>
+                    <option value="other">Другое</option>
+                  </select>
+                </label>
+
+                <label class="select">
+                  <span>Статус</span>
+                  <select id="filterStatus">
+                    <option value="all">Все</option>
+                    <option value="new">Новая</option>
+                    <option value="work">В работе</option>
+                    <option value="done">Решена</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="hint">
+                Подсказка: клик по карте = поставить метку (если открыто окно добавления).
+              </div>
+            </div>
+
+            <!-- “Карта” без API: интерактивный канвас -->
+            <div id="mapCanvas" class="map-canvas" aria-label="Карта Астаны (условная)"></div>
+
+            <div class="map-footer">
+              <div class="small">
+                Это демонстрационная карта-канвас без внешних API. Метки хранятся в вашем браузере.
+              </div>
+              <div class="small" id="statsLine">Загружаю...</div>
+            </div>
+          </div>
+
+          <aside class="panel">
+            <div class="panel-head">
+              <h2 class="panel-title">Список заявок</h2>
+              <div class="panel-sub">Нажмите на заявку — подсветим метку.</div>
+            </div>
+
+            <div class="panel-list" id="issueList"></div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- ВОЗМОЖНОСТИ -->
+    <section class="section" id="services">
+      <div class="container">
+        <div class="section-head">
+          <h1 class="section-title">Возможности платформы</h1>
+          <p class="section-subtitle">Подача заявок, мониторинг и аналитика для улучшения города.</p>
+        </div>
+
+        <div class="cards">
+          <article class="card">
+            <h2>Аналитика данных</h2>
+            <p>Сбор и анализ проблем по районам и категориям.</p>
+            <button class="btn btn-ghost">Подробнее</button>
+          </article>
+
+          <article class="card">
+            <h2>Краудсорсинг идей</h2>
+            <p>Предложения жителей и поддержка инициатив.</p>
+            <button class="btn btn-ghost">Подробнее</button>
+          </article>
+
+          <article class="card">
+            <h2>Мониторинг проблем</h2>
+            <p>Статусы заявок: новая → в работе → решена.</p>
+            <button class="btn btn-ghost">Подробнее</button>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- КАК РАБОТАЕТ -->
+    <section class="section" id="how">
+      <div class="container">
+        <div class="section-head">
+          <h1 class="section-title">Как это работает</h1>
+          <p class="section-subtitle">Понятный процесс от обращения до результата.</p>
+        </div>
+
+        <div class="steps">
+          <div class="step">1. Житель отмечает проблему</div>
+          <div class="step">2. Данные собираются</div>
+          <div class="step">3. Анализ и приоритизация</div>
+          <div class="step">4. Исполнение и отчет</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Контакты / Вход -->
+    <section class="section section-cta" id="contacts">
+      <div class="container cta">
+        <div class="cta-text">
+          <h1 class="section-title">Присоединяйтесь к нам!</h1>
+          <p class="section-subtitle">Задайте вопрос или начните с первой заявки на карте.</p>
+        </div>
+        <div class="cta-actions">
+          <button class="btn btn-primary" id="btnAsk">Задать вопрос</button>
+          <a class="btn btn-ghost" href="#mapBlock">Открыть карту</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Заглушка “Вход” (позже подключишь к Flask/FastAPI) -->
+    <section class="section" id="auth">
+      <div class="container">
+        <div class="section-head">
+          <h1 class="section-title">Вход (заглушка)</h1>
+          <p class="section-subtitle">На MVP можно сделать форму, а позже подключить к серверу.</p>
+        </div>
+
+        <div class="auth">
+          <div class="auth-card">
+            <label class="field">
+              <span>Email</span>
+              <input type="email" placeholder="example@mail.com" />
+            </label>
+
+            <label class="field">
+              <span>Пароль</span>
+              <input type="password" placeholder="••••••••" />
+            </label>
+
+            <button class="btn btn-primary">Войти</button>
+            <button class="btn btn-ghost">Регистрация</button>
+          </div>
+
+          <div class="auth-note">
+            <h3>Что дальше</h3>
+            <p class="muted">
+              Когда начнёте backend: создаёте таблицу пользователей и выдаёте токен/сессию.
+              Сейчас это блок для внешнего вида.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <div class="footer-logo">AQ</div>
+        <div>
+          <div class="footer-title">Ashyq Qala</div>
+          <div class="footer-sub">Платформа 2026 · Астана</div>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <a href="#">Политика конфиденциальности</a>
+        <a href="#">Пользовательское соглашение</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Модалка: добавление проблемы -->
+  <div class="modal" id="issueModal" aria-hidden="true">
+    <div class="modal-backdrop" data-close="1"></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-label="Добавить проблему">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title">Новая проблема</div>
+          <div class="modal-sub">Сначала выберите точку на карте, затем заполните форму.</div>
+        </div>
+        <button class="icon-btn" data-close="1" aria-label="Закрыть">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="two">
+          <label class="field">
+            <span>Категория</span>
+            <select id="issueCategory">
+              <option value="roads">Дороги</option>
+              <option value="light">Освещение</option>
+              <option value="trash">Мусор</option>
+              <option value="eco">Экология</option>
+              <option value="safety">Безопасность</option>
+              <option value="other">Другое</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Статус</span>
+            <select id="issueStatus">
+              <option value="new">Новая</option>
+              <option value="work">В работе</option>
+              <option value="done">Решена</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Описание</span>
+          <textarea id="issueDesc" rows="4" placeholder="Например: большая яма на дороге возле школы..."></textarea>
+        </label>
+
+        <div class="coords">
+          <div class="small">Точка на карте:</div>
+          <div class="pill" id="coordsView">не выбрана</div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-ghost" data-close="1">Отмена</button>
+        <button class="btn btn-primary" id="btnSaveIssue" disabled>Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="map.js"></script>
+</body>
+</html>
